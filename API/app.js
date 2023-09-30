@@ -1,5 +1,7 @@
 const express = require('express');
+const cookiePaser = require('cookie-parser');
 const userRouter = require('./routes/users');
+const taskRouter = require('./routes/task');
 const connectDB = require('./data/database');
 const { config } = require('dotenv')
 const app = express();
@@ -11,7 +13,9 @@ config({
 connectDB();
 
 app.use(express.json());
-app.use('/users', userRouter);
+app.use(cookiePaser());
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/tasks', taskRouter);
 
 app.get('/', (req, res) => {
     res.send("Yen samachara?");
