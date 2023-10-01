@@ -1,16 +1,9 @@
-const User = require('../models/user')
+const User = require('../models/user');
+const { ErrorHandler } = require('../middleware/error');
 const bcrypt = require('bcrypt');
 const sendCookie = require('../utils/features');
 const jwt = require('jsonwebtoken');
 
-const getAllUsers  = async (req, res) => {
-    const users = await User.find({});
-
-    res.json({
-        success: true,
-        users,
-    });
-}
 
 const getUserById = (req, res) => {
     res
@@ -28,10 +21,7 @@ const createNewUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if(user) 
-        return res.status(404).json({
-            success: false,
-            message: "User already exists"
-        });
+    return next(new ErrorHandler("User already exists", 400));
     
     const hashedPwd = await bcrypt.hash(password, 10);
 
@@ -51,20 +41,14 @@ const loginUser = async (req, res, next) => {
     const user = await User.findOne({ email }).select('+password');
 
     if(!user) 
-        return res.status(404).json({
-            success: false,
-            message: "Invalid email or password"
-        });
+        return next(new ErrorHandler("Invalid email or password", 400));
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if(!isMatch)
-        return res.status(404).json({
-            success: false,
-            message: "Invalid email or password"
-        });
+        return next(new ErrorHandler("Invalid email or password", 400));
 
-        sendCookie(user, res, `Welcome back, ${user.name}`, 200);
+    sendCookie(user, res, `Welcome back, ${user.name}`, 200);
 
 }
 
@@ -72,11 +56,15 @@ const logoutUser = async(req, res) => {
 
     res
         .status(200)
-        .cookie("token", "", { expires: new Date(Date.now()) })
+        .cookie("token", "", { 
+            expires: new Date(Date.now()) ,
+            sameSite: process.env.NODE_ENV === "Development" ? "lax" : "none",
+            secure: process.env.NODE_ENV === "Development" ? false : true,
+        })
         .json({
             success: true,
             message: "User logged out"
         })
 }
 
-module.exports = { getAllUsers, getUserById, createNewUser, loginUser, logoutUser };
+module.exports = { getUserById, createNewUser, loginUser, logoutUser };

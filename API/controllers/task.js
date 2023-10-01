@@ -1,3 +1,4 @@
+const { ErrorHandler } = require('../middleware/error');
 const Task = require('../models/task');
 
 
@@ -29,10 +30,12 @@ const getAllTasks = async(req, res) => {
     });
 }
 
-const updateTask = async(req, res) => {
+const updateTask = async(req, res, next) => {
 
     const task = await Task.findById(req.params.id);
 
+    if(!task) return next(new ErrorHandler("Task does not exist", 404));
+        
     task.isCompleted = !task.isCompleted;
     await task.save();
 
@@ -42,9 +45,11 @@ const updateTask = async(req, res) => {
     });
 }
 
-const deleteTask = async(req, res) => {
+const deleteTask = async(req, res, next) => {
 
     const task = await Task.findById(req.params.id);
+
+    if(!task) return next(new ErrorHandler("Task not found", 404));
 
     await task.deleteOne();
 
