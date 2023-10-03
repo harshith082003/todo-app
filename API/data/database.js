@@ -4,7 +4,7 @@ const connectDB = () => {
     mongoose
     .connect(process.env.MONGO_URI, 
     {
-        dbName: "api"
+        dbName: "first"
     })
     .then(() => console.log("DB connected"))
     .catch(e => console.log(e))
