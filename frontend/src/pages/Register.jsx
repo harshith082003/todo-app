@@ -1,17 +1,20 @@
 import React, {useContext, useState} from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import axios from 'axios'
 import {Context, server} from '../main'
 import toast from 'react-hot-toast'
 
 export default function Register() {
 
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { isAuthenticated, setIsAthenticated } = useContext(Context);
+    const { isAuthenticated, setIsAuthenticated, loading, setLoading } = useContext(Context);
+
     const handleRegisterSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
         console.log(name, email, password);
 
@@ -28,14 +31,22 @@ export default function Register() {
             })
 
             toast.success(data.message);
-            setIsAthenticated(true);
+            setIsAuthenticated(true);
+            setLoading(false);
+
         } catch(error){
-            toast.error("Error in registration");
+            toast.error(error.response.data.message);
             console.log(error);
-            setIsAthenticated(false);
+            setIsAuthenticated(false);
+            setLoading(false);
+
 
         }
+
     }
+
+    if(isAuthenticated) return <Navigate to={'/'}/>
+
   return (
     <div className='login'>
       <section>
@@ -61,7 +72,7 @@ export default function Register() {
                 placeholder='Create password' 
                 required
             />
-            <button type='submit'>Sign Up</button>
+            <button disabled = {loading} type='submit'>Sign Up</button>
             <h4>Or</h4>
             <Link to={'/login'}>Login</Link>
         </form>
