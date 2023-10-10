@@ -5,8 +5,30 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { Toaster } from "react-hot-toast";
+import { useContext, useEffect } from "react";
+import { Context, server } from "./main";
+import axios from 'axios';
 
 function App() {
+
+  const { setUser, setIsAuthenticated } = useContext(Context);
+
+  useEffect(() => {
+    axios
+      .get(`${server}/users/me`, {
+        withCredentials: true,
+      })
+      .then(res => {
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+      })
+      .catch(err => {
+        setUser({});
+        setIsAuthenticated(false);
+        console.log(err);
+      })
+  }, []);
+  
   return (
     <Router>
       <Header/>
