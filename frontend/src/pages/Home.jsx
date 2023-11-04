@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import '../styles/app.scss'
 import { Context, server } from '../main';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import TodoItem from '../components/TodoItem';
+import { Navigate } from 'react-router-dom'
 
 export default function Home() {
 
@@ -11,7 +12,35 @@ export default function Home() {
   const[title, setTitle] = useState('');
   const[description, setDescription] = useState('');
   const[loading, setLoading] = useState(false);
+  const[refresh, setRefresh] = useState(false);
 
+  const { isAuthenticated } = useContext(Context);
+  const updateHandler = async id => {
+
+    try {
+      const {data} = await axios.put(`${server}/tasks/${id}`, {}, {
+        withCredentials: true,
+      })
+      setRefresh(prev => !prev);
+
+      toast.success(data.message);
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  }
+
+  const deleteHandler = async id => {
+    try {
+        const {data} = await axios.delete(`${server}/tasks/${id}`, {
+          withCredentials: true,
+        })
+        setRefresh(prev => !prev);
+
+        toast.success(data.message);
+    } catch (error) {
+        toast.error(error.response.data.message);
+    }
+  }  
 
   const createTask = async(e) => {
     e.preventDefault();
@@ -22,8 +51,8 @@ export default function Home() {
     try{
       setLoading(true);
       const { data } = await axios.post(`${server}/tasks/new`, { 
-      title, 
-      description
+        title, 
+        description
       },{
       headers:{
           "Content-Type": "application/json"
@@ -36,6 +65,7 @@ export default function Home() {
       setLoading(false);
       setTitle('');
       setDescription('');
+      setRefresh(prev => !prev);
 
     } catch(error){
         toast.error(error.response.data.message);
@@ -57,7 +87,10 @@ export default function Home() {
         // setIsAuthenticated(false);
         console.log(err);
       })
-  }, []);
+  }, [refresh]);
+
+  if(!isAuthenticated) return <Navigate to={'/login'}/>
+
 
   return (
     <div className='container'>
@@ -90,7 +123,12 @@ export default function Home() {
       <section className="todosContainer">
           {
             tasks.map(task => (
-              <TodoItem title = {task.title} description={task.description} isCompleted={task.isCompleted}/>
+              <TodoItem title = {task.title} description={task.description} isCompleted={task.isCompleted}
+              updateHandler = {updateHandler}
+              deleteHandler = {deleteHandler}
+              id = {task._id}
+              key = {task._id}
+              />
             ))
           }
         </section>

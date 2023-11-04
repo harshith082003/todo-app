@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function TodoItem({ title, description, isCompleted}) {
+export default function TodoItem({ title, description, isCompleted, updateHandler, deleteHandler, id}) {
   return (
     <div className='todo'>
       
@@ -9,8 +9,8 @@ export default function TodoItem({ title, description, isCompleted}) {
         <p>{description}</p>
       </div>
       <div>
-        <input type='checkbox' checked = {isCompleted} />
-        <button className='btn'>Delete</button>
+        <input onChange={() => updateHandler(id)} type='checkbox' checked = {isCompleted} />
+        <button className='btn' onClick={() => deleteHandler(id)}>Delete</button>
       </div>
     </div>
   )
